@@ -29,6 +29,22 @@ const client = new MongoClient(uri, {
   },
 });
 
+// middlewares
+const verifyToken = (req, res, next) => {
+  const { token } = req.cookies;
+
+  if (!token) {
+    return res.status(401).send({ message: "Unauthorized Access" });
+  }
+
+  jwt.verify(token, process.env.Secret_Token, (err, decode) => {
+    if (err) {
+      return res.status(401).send({ message: "Unauthorized Access" });
+    }
+    next();
+  });
+};
+
 async function run() {
   try {
     // await client.connect();
@@ -38,12 +54,6 @@ async function run() {
     const bookingCollection = client.db("haven-hotelDB").collection("booking");
 
     // create apis
-    app.post("/api/v1/user/create-booking", async (req, res) => {
-      const booking = req.body;
-      const result = await bookingCollection.insertOne(booking);
-      res.send(result);
-    });
-
     app.post("/api/v1/auth/access-token", async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.Secret_Token, {
@@ -58,8 +68,14 @@ async function run() {
         .send({ success: true });
     });
 
+    app.post("/api/v1/user/create-booking", async (req, res) => {
+      const booking = req.body;
+      const result = await bookingCollection.insertOne(booking);
+      res.send(result);
+    });
+
     // find apis
-    app.get("/api/v1/rooms", async (req, res) => {
+    app.get("/api/v1/rooms", verifyToken, async (req, res) => {
       const cursor = roomCollection.find();
       const result = await cursor.toArray();
       res.send(result);
