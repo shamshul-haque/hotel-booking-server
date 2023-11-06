@@ -33,6 +33,16 @@ async function run() {
   try {
     // await client.connect();
 
+    // connect collections
+    const roomCollection = client.db("haven-hotelDB").collection("rooms");
+
+    // get apis
+    app.get("/api/v1/rooms", async (req, res) => {
+      const cursor = roomCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
