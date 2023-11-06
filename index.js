@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const app = express();
@@ -52,6 +52,12 @@ async function run() {
     });
 
     // cancel apis
+    app.delete("/api/v1/user/cancel-booking/:bookingId", async (req, res) => {
+      const id = req.params.bookingId;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
