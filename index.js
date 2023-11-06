@@ -35,13 +35,23 @@ async function run() {
 
     // connect collections
     const roomCollection = client.db("haven-hotelDB").collection("rooms");
+    const bookingCollection = client.db("haven-hotelDB").collection("booking");
 
-    // get apis
+    // create apis
+    app.post("/api/v1/user/create-booking", async (req, res) => {
+      const booking = req.body;
+      const result = await bookingCollection.insertOne(booking);
+      res.send(result);
+    });
+
+    // find apis
     app.get("/api/v1/rooms", async (req, res) => {
       const cursor = roomCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     });
+
+    // cancel apis
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
