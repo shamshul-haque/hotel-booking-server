@@ -44,6 +44,20 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/api/v1/auth/access-token", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.Secret_Token, {
+        expiresIn: 60 * 60,
+      });
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+        })
+        .send({ success: true });
+    });
+
     // find apis
     app.get("/api/v1/rooms", async (req, res) => {
       const cursor = roomCollection.find();
