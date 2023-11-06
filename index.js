@@ -41,6 +41,7 @@ const verifyToken = (req, res, next) => {
     if (err) {
       return res.status(401).send({ message: "Unauthorized Access" });
     }
+    req.user = decode;
     next();
   });
 };
@@ -81,9 +82,26 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/api/v1/user/bookings", verifyToken, async (req, res) => {
+      const queryEmail = req.query.email;
+      const tokenEmail = req.user.email;
+
+      if (queryEmail !== tokenEmail) {
+        return res.status(403).send({ message: "Forbidden Access" });
+      }
+
+      let query = {};
+      if (queryEmail) {
+        query.email = queryEmail;
+      }
+
+      const result = await bookingCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // cancel apis
-    app.delete("/api/v1/user/cancel-booking/:bookingId", async (req, res) => {
-      const id = req.params.bookingId;
+    app.delete("/api/v1/user/cancel-booking/:id", async (req, res) => {
+      const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await bookingCollection.deleteOne(query);
       res.send(result);
