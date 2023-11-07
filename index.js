@@ -54,7 +54,7 @@ async function run() {
     const roomCollection = client.db("haven-hotelDB").collection("rooms");
     const bookingCollection = client.db("haven-hotelDB").collection("booking");
 
-    // create apis
+    // create operations
     app.post("/api/v1/auth/access-token", async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.Secret_Token, {
@@ -75,10 +75,17 @@ async function run() {
       res.send(result);
     });
 
-    // find apis
-    app.get("/api/v1/rooms", verifyToken, async (req, res) => {
+    // find operations
+    app.get("/api/v1/rooms", async (req, res) => {
       const cursor = roomCollection.find();
       const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.get("/api/v1/rooms/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await roomCollection.findOne(query);
       res.send(result);
     });
 
@@ -99,7 +106,7 @@ async function run() {
       res.send(result);
     });
 
-    // cancel apis
+    // cancel operations
     app.delete("/api/v1/user/cancel-booking/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -107,7 +114,7 @@ async function run() {
       res.send(result);
     });
 
-    // Send a ping to confirm a successful connection
+    // send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
