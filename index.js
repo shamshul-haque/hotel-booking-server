@@ -10,7 +10,10 @@ const port = process.env.PORT || 5000;
 // parsers
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "https://hotel-booking-57ae2.web.app",
+      "https://hotel-booking-57ae2.firebaseapp.com",
+    ],
     credentials: true,
   })
 );
@@ -29,7 +32,7 @@ const client = new MongoClient(uri, {
   },
 });
 
-// middlewares
+// middleware for verify token
 const verifyToken = (req, res, next) => {
   const { token } = req.cookies;
 
@@ -50,11 +53,12 @@ async function run() {
   try {
     // await client.connect();
 
-    // connect collections
+    // db collections
     const roomCollection = client.db("haven-hotelDB").collection("rooms");
     const bookingCollection = client.db("haven-hotelDB").collection("booking");
+    const reviewCollection = client.db("haven-hotelDB").collection("review");
 
-    // create operations
+    // post operation for access token
     app.post("/api/v1/auth/access-token", async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.Secret_Token, {
@@ -69,19 +73,28 @@ async function run() {
         .send({ success: true });
     });
 
-    app.post("/api/v1/user/create-booking", async (req, res) => {
+    // post operation for create booking
+    app.post("/api/v1/user/create-booking", verifyToken, async (req, res) => {
       const booking = req.body;
       const result = await bookingCollection.insertOne(booking);
       res.send(result);
     });
 
-    // find operations
+    // post operation for create reviews
+    app.post("/api/v1/user/review", async (req, res) => {
+      const booking = req.body;
+      const result = await reviewCollection.insertOne(booking);
+      res.send(result);
+    });
+
+    // get operation for collecting all rooms
     app.get("/api/v1/rooms", async (req, res) => {
       const cursor = roomCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     });
 
+    // get operation for collecting specific room
     app.get("/api/v1/rooms/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -89,6 +102,7 @@ async function run() {
       res.send(result);
     });
 
+    // get operation for collecting all bookings
     app.get("/api/v1/user/bookings", verifyToken, async (req, res) => {
       const queryEmail = req.query.email;
       const tokenEmail = req.user.email;
@@ -106,11 +120,31 @@ async function run() {
       res.send(result);
     });
 
-    // cancel operations
+    // delete operations operation for specific booking
     app.delete("/api/v1/user/cancel-booking/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await bookingCollection.deleteOne(query);
+      res.send(result);
+
+      // const date = 3;
+      // const query = { _id: new ObjectId(id) };
+      // if (date > 1) {
+      //   const result = await bookingCollection.deleteOne(query);
+      //   res.send(result);
+      // } else {
+      //   res.send({ message: "Cancelation time expired!" });
+      // }
+    });
+
+    // update operation for specific booking
+    app.put("/api/v1/user/manage-booking/:id", async (req, res) => {
+      const id = req.params.id;
+      const date = req.body.date;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.updateOne(query, {
+        $set: { date: date },
+      });
       res.send(result);
     });
 
