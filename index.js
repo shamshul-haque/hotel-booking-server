@@ -151,14 +151,23 @@ async function run() {
 
     // review apis
     // post/create a review
-    app.post("/api/v1/user/review", async (req, res) => {
+    app.post("/api/v1/user/review", verifyToken, async (req, res) => {
       const booking = req.body;
       const result = await reviewCollection.insertOne(booking);
       res.send(result);
     });
 
+    // get/find all reviews
     app.get("/api/v1/user/review", async (req, res) => {
       const cursor = reviewCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // get/find all reviews based on room id
+    app.get("/api/v1/user/review/:roomId", async (req, res) => {
+      const roomId = req.params.roomId;
+      const cursor = reviewCollection.find({ roomId: roomId });
       const result = await cursor.toArray();
       res.send(result);
     });
