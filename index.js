@@ -157,6 +157,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/api/v1/user/review", async (req, res) => {
+      const cursor = reviewCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     // send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
