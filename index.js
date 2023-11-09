@@ -11,9 +11,9 @@ const port = process.env.PORT || 5000;
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
-      // "https://hotel-booking-57ae2.web.app",
-      // "https://hotel-booking-57ae2.firebaseapp.com",
+      // "http://localhost:5173",
+      "https://hotel-booking-57ae2.web.app",
+      "https://hotel-booking-57ae2.firebaseapp.com",
     ],
     credentials: true,
   })
@@ -173,7 +173,7 @@ async function run() {
     });
 
     // send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
