@@ -74,28 +74,15 @@ async function run() {
         .send({ success: true });
     });
 
-    // post operation for create booking
-    app.post("/api/v1/user/create-booking", verifyToken, async (req, res) => {
-      const booking = req.body;
-      const result = await bookingCollection.insertOne(booking);
-      res.send(result);
-    });
-
-    // post operation for create reviews
-    app.post("/api/v1/user/review", async (req, res) => {
-      const booking = req.body;
-      const result = await reviewCollection.insertOne(booking);
-      res.send(result);
-    });
-
-    // get operation for collecting all rooms
+    // room apis
+    // get/find all rooms
     app.get("/api/v1/rooms", async (req, res) => {
       const cursor = roomCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     });
 
-    // get operation for collecting specific room
+    // get/find specific room based on id
     app.get("/api/v1/rooms/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -103,7 +90,15 @@ async function run() {
       res.send(result);
     });
 
-    // get operation for collecting all bookings
+    // booking apis
+    // create/post a booking
+    app.post("/api/v1/user/create-booking", verifyToken, async (req, res) => {
+      const booking = req.body;
+      const result = await bookingCollection.insertOne(booking);
+      res.send(result);
+    });
+
+    // get/find all bookings based on user email
     app.get("/api/v1/user/bookings", verifyToken, async (req, res) => {
       const queryEmail = req.query.email;
       const tokenEmail = req.user.email;
@@ -121,24 +116,44 @@ async function run() {
       res.send(result);
     });
 
-    // delete operations operation for specific booking
-    app.delete("/api/v1/user/cancel-booking/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await bookingCollection.deleteOne(query);
-      res.send(result);
-    });
+    // update/manage specific booking based on booking id
+    app.put(
+      "/api/v1/user/manage-booking/:id",
+      verifyToken,
+      async (req, res) => {
+        const id = req.params.id;
+        const updateDate = req.body;
+        const filter = { _id: new ObjectId(id) };
+        const options = { upsert: true };
+        const update = {
+          $set: { date: updateDate.date },
+        };
+        const result = await bookingCollection.updateOne(
+          filter,
+          update,
+          options
+        );
+        res.send(result);
+      }
+    );
 
-    // update operation for specific booking
-    app.put("/api/v1/user/manage-booking/:id", async (req, res) => {
-      const id = req.params.id;
-      const updateDate = req.body;
-      const filter = { _id: new ObjectId(id) };
-      const options = { upsert: true };
-      const update = {
-        $set: { date: updateDate.date },
-      };
-      const result = await bookingCollection.updateOne(filter, update, options);
+    // delete/cancel specific booking based on booking id
+    app.delete(
+      "/api/v1/user/cancel-booking/:id",
+      verifyToken,
+      async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await bookingCollection.deleteOne(query);
+        res.send(result);
+      }
+    );
+
+    // review apis
+    // post/create a review
+    app.post("/api/v1/user/review", async (req, res) => {
+      const booking = req.body;
+      const result = await reviewCollection.insertOne(booking);
       res.send(result);
     });
 
