@@ -11,8 +11,9 @@ const port = process.env.PORT || 5000;
 app.use(
   cors({
     origin: [
-      "https://hotel-booking-57ae2.web.app",
-      "https://hotel-booking-57ae2.firebaseapp.com",
+      "http://localhost:5173",
+      // "https://hotel-booking-57ae2.web.app",
+      // "https://hotel-booking-57ae2.firebaseapp.com",
     ],
     credentials: true,
   })
@@ -62,7 +63,7 @@ async function run() {
     app.post("/api/v1/auth/access-token", async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.Secret_Token, {
-        expiresIn: 60 * 60,
+        expiresIn: "6h",
       });
       res
         .cookie("token", token, {
@@ -126,25 +127,18 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await bookingCollection.deleteOne(query);
       res.send(result);
-
-      // const date = 3;
-      // const query = { _id: new ObjectId(id) };
-      // if (date > 1) {
-      //   const result = await bookingCollection.deleteOne(query);
-      //   res.send(result);
-      // } else {
-      //   res.send({ message: "Cancelation time expired!" });
-      // }
     });
 
     // update operation for specific booking
     app.put("/api/v1/user/manage-booking/:id", async (req, res) => {
       const id = req.params.id;
-      const date = req.body.date;
-      const query = { _id: new ObjectId(id) };
-      const result = await bookingCollection.updateOne(query, {
-        $set: { date: date },
-      });
+      const updateDate = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const update = {
+        $set: { date: updateDate.date },
+      };
+      const result = await bookingCollection.updateOne(filter, update, options);
       res.send(result);
     });
 
