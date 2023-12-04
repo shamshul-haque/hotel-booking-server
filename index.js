@@ -11,9 +11,9 @@ const port = process.env.PORT || 5000;
 app.use(
   cors({
     origin: [
-      // "http://localhost:5173",
-      "https://hotel-booking-57ae2.web.app",
-      "https://hotel-booking-57ae2.firebaseapp.com",
+      "http://localhost:5173",
+      // "https://hotel-booking-57ae2.web.app",
+      // "https://hotel-booking-57ae2.firebaseapp.com",
     ],
     credentials: true,
   })
@@ -77,7 +77,15 @@ async function run() {
     // room apis
     // get/find all rooms
     app.get("/api/v1/rooms", async (req, res) => {
-      const cursor = roomCollection.find();
+      const filter = req.query;
+      const query = {
+        // name: { $regex: filter.search, $options: "i" },
+        // price_per_night: { $gt: 150, $lt:300  },
+      };
+      const options = {
+        sort: { price_per_night: filter.sort === "asc" ? 1 : -1 },
+      };
+      const cursor = roomCollection.find(query, options);
       const result = await cursor.toArray();
       res.send(result);
     });
